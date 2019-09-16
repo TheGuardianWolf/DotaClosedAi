@@ -3,12 +3,12 @@ using System.Drawing;
 
 namespace DotaClosedAi.Screen
 {
-    public class Capture : IDisposable
+    public class Frame : IDisposable
     {
         public Bitmap Bitmap { get; private set; }
         public Point Cursor { get; private set; }
 
-        public Capture(Bitmap bitmap, Point cursor)
+        public Frame(Bitmap bitmap, Point cursor)
         {
             Bitmap = bitmap;
             Cursor = cursor;

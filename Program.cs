@@ -1,47 +1,41 @@
-﻿using System;
+﻿using DotaClosedAi.Screen;
+using DotaClosedAi.Tasks;
+using DotaClosedAi.Vision;
+using OpenCvSharp;
+using OpenCvSharp.Extensions;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DotaClosedAi
 {
     class Program
     {
-        static int captured = 0;
-
-        static async Task OutputAsync()
+        static void Main(string[] args)
         {
+            var process = Process.GetProcessesByName("dota2").FirstOrDefault();
+
+            var dotaWindowCapture = new DotaOcvWindowCapture();
+            dotaWindowCapture.FrameCaptured += DotaWindowCapture_FrameCaptured;
+            dotaWindowCapture.Run();
+
             while(true)
             {
-                await Task.Delay(1000);
-                Console.WriteLine($"{captured}");
-                captured = 0;
+                Thread.Sleep(1000);
+                Console.WriteLine($"{dotaWindowCapture.FramesPerSecond}");
             }
         }
 
-        static void Main(string[] args)
+        private static void DotaWindowCapture_FrameCaptured(object sender, DotaOcvWindowCaptureFrameCapturedEventArgs e)
         {
-            var process = System.Diagnostics.Process.GetProcessesByName("dota2").FirstOrDefault();
-            var sg = new ScreenGrabber();
-            //sg.TakeScreenshot().Save("Full.png", ImageFormat.Png);
-
-            var sgp = new ScreenGrabber(process);
-            var bmp = sgp.TakeScreenshot();
-            bmp.Save("Process.png", ImageFormat.Png);
-            bmp.Dispose();
-
-            //Task.Run(OutputAsync);
-
-            //while (true)
-            //{
-            //    //sgp.TakeScreenshot();
-            //    var bmp = sgp.TakeScreenshot();
-            //    bmp.Dispose();
-            //    captured += 1;
-            //}
+            var frame = e.Frame;
+            frame.Dispose();
         }
     }
 }

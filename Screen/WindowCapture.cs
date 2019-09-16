@@ -17,10 +17,13 @@ namespace DotaClosedAi.Screen
         private IntPtr _compatDC;
         private IntPtr _compatBitmap;
         private POINT _cursor;
-        private bool _hasCapture = false;
+        private bool _hasFrame = false;
+
+        public Size WindowSize => new Size(_rc.Width, _rc.Height);
 
         public WindowCapture(Process process)
         {
+            _process = process;
             User.GetWindowRect(_process.MainWindowHandle, out _rc);
             Init();
         }
@@ -30,18 +33,21 @@ namespace DotaClosedAi.Screen
             _windowDC = User.GetWindowDC(_process.MainWindowHandle);
             _compatDC = Gdi.CreateCompatibleDC(_windowDC);
             _compatBitmap = Gdi.CreateCompatibleBitmap(_windowDC, _rc.Width, _rc.Height);
+            IntPtr hOldBmp = Gdi.SelectObject(_compatDC, _compatBitmap);
+            Gdi.DeleteObject(hOldBmp);
         }
 
         public void PerformCapture()
         {
             lock(this)
             {   
-                _hasCapture = true;
+                _hasFrame = true;
                 RECT rc;
                 User.GetWindowRect(_process.MainWindowHandle, out rc);
 
                 if (rc != _rc)
                 {
+                    Dispose(false);
                     _rc = rc;
                     Init();
                 }
@@ -52,9 +58,9 @@ namespace DotaClosedAi.Screen
 
                 //PrintWindow(hwnd, hDest, 0);
                 User.GetCursorPos(out _cursor);
-                IntPtr hOldBmp = Gdi.SelectObject(_compatDC, _compatBitmap);
-                Gdi.BitBlt(_compatDC, 0, 0, rc.Width, rc.Height, _windowDC, 0, 0, CopyPixelOperation.SourceCopy);
-                Gdi.SelectObject(_compatDC, hOldBmp);
+
+                Gdi.SelectObject(_compatDC, _compatBitmap);
+                Gdi.BitBlt(_compatDC, 0, 0, _rc.Width, _rc.Height, _windowDC, 0, 0, CopyPixelOperation.SourceCopy);
 
                 //Bitmap bmp = new Bitmap(rc.Width, rc.Height, PixelFormat.Format24bppRgb);
                 //Graphics gfxBmp = Graphics.FromImage(bmp);
@@ -69,19 +75,47 @@ namespace DotaClosedAi.Screen
             }
         }
 
-        public Capture GetCapture()
+        public Frame GetFrame()
         {
-            Capture c = null;
+            Frame c = null;
 
-            if (_hasCapture)
+            if (_hasFrame)
             {
                 lock(this)
                 {
-                    c = new Capture(Bitmap.FromHbitmap(_compatBitmap), _cursor);
+                    c = new Frame(Bitmap.FromHbitmap(_compatBitmap), _cursor);
                 }
             }
 
             return c;
+        }
+
+        public Point GetCursor()
+        {
+            Point p = new Point();
+
+            if (_hasFrame)
+            {
+                lock(this)
+                {
+                    p = _cursor;
+                }
+            }
+
+            return p;
+        }
+
+        public bool CopyFrame(IntPtr copy)
+        {
+            if (_hasFrame)
+            {
+                lock(this)
+                {
+                    return Gdi.BitBlt(copy, 0, 0, _rc.Width, _rc.Height, _compatDC, 0, 0, CopyPixelOperation.SourceCopy);
+                }
+            }
+
+            return false;
         }
 
         public void Dispose()
@@ -97,10 +131,9 @@ namespace DotaClosedAi.Screen
             //    // free managed resources
             //}
             // free native resources if there are any.
-            Gdi.SelectObject(_compatDC, _compatBitmap);
-            Gdi.DeleteObject(_compatBitmap);
-            Gdi.DeleteDC(_compatDC);
             User.ReleaseDC(_process.MainWindowHandle, _windowDC);
+            Gdi.DeleteDC(_compatDC);
+            Gdi.DeleteObject(_compatBitmap);
         }
     }
 }

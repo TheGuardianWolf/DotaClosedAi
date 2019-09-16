@@ -10,6 +10,8 @@ namespace DotaClosedAi.Win32
 {
     public static class User
     {
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern IntPtr GetDC(IntPtr hWnd);
         [DllImport("user32.dll")]
         public static extern bool GetCursorPos(out POINT lpPoint);
         [DllImport("user32.dll")]
@@ -36,6 +38,8 @@ namespace DotaClosedAi.Win32
         public static extern IntPtr CreateCompatibleBitmap(IntPtr hdc, int nWidth, int nHeight);
         [DllImport("gdi32.dll")]
         public static extern IntPtr CreateCompatibleDC(IntPtr hdc);
+        [DllImport("gdi32.dll")]
+        public static extern IntPtr CreateDIBSection(IntPtr hdc, [In] ref BITMAPINFO pbmi, DIBColors pila, out IntPtr ppvBits, IntPtr hSection, uint dwOffset);
         [DllImport("gdi32.dll")]
         public static extern IntPtr SelectObject(IntPtr hdc, IntPtr bmp);
     }
@@ -175,5 +179,60 @@ namespace DotaClosedAi.Win32
         {
             return new Point(point.X, point.Y);
         }
+    }
+
+    public enum BitmapCompressionMode : uint
+    {
+        BI_RGB = 0,
+        BI_RLE8 = 1,
+        BI_RLE4 = 2,
+        BI_BITFIELDS = 3,
+        BI_JPEG = 4,
+        BI_PNG = 5
+    }
+
+    public enum DIBColors : uint
+    {
+        DIB_RGB_COLORS = 0,
+        DIB_PAL_COLORS = 1,
+        DIB_PAL_INDICES = 2
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct BITMAPINFOHEADER
+    {
+        public uint biSize;
+        public int biWidth;
+        public int biHeight;
+        public ushort biPlanes;
+        public ushort biBitCount;
+        public BitmapCompressionMode biCompression;
+        public uint biSizeImage;
+        public int biXPelsPerMeter;
+        public int biYPelsPerMeter;
+        public uint biClrUsed;
+        public uint biClrImportant;
+
+        public void Init()
+        {
+            biSize = (uint)Marshal.SizeOf(this);
+        }
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct BITMAPINFO
+    {
+        public BITMAPINFOHEADER bmiHeader;
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 1)]
+        public RGBQUAD[] bmiColors;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+    public struct RGBQUAD
+    {
+        public byte rgbBlue;
+        public byte rgbGreen;
+        public byte rgbRed;
+        public byte rgbReserved;
     }
 }
