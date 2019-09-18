@@ -1,22 +1,23 @@
-﻿using OpenCvSharp;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Drawing;
+using Emgu.CV;
 
 namespace DotaClosedAi.Screen
 {
-    class OcvFrame : IDisposable
+    class FrameOcv : IDisposable, IFrame
     {
-        public Mat Mat { get; private set; }
+        public Mat Image { get; private set; }
         public Point Cursor { get; private set; }
 
-        public OcvFrame(Mat mat, Point cursor)
+        public FrameOcv(Mat mat, Point cursor)
         {
-            Mat temp = new Mat(mat.Height, mat.Width, mat.Type());
+            Mat temp = new Mat(mat.Size, mat.Depth, mat.NumberOfChannels);
             mat.CopyTo(temp);
-            Mat = temp;
+            Image = temp;
             Cursor = cursor;
         }
 
@@ -30,7 +31,7 @@ namespace DotaClosedAi.Screen
         {
             if (disposing)
             {
-                Mat.Dispose();
+                Image.Dispose();
             }
             // free native resources if there are any.
         }

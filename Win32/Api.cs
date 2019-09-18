@@ -8,6 +8,12 @@ using System.Threading.Tasks;
 
 namespace DotaClosedAi.Win32
 {
+    public static class Kernel
+    {
+        [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        public static extern IntPtr GetModuleHandle(string lpModuleName);
+    }
+    
     public static class User
     {
         [DllImport("user32.dll", SetLastError = true)]
@@ -24,6 +30,18 @@ namespace DotaClosedAi.Win32
         public static extern IntPtr GetDesktopWindow();
         [DllImport("user32.dll")]
         public static extern IntPtr GetWindowDC(IntPtr ptr);
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern IntPtr SetWindowsHookEx(HookType hookType, HookProc lpfn, IntPtr hMod, uint dwThreadId);
+        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        public static extern IntPtr SetWindowsHookEx(HookType hookType, LowLevelKeyboardProc lpfn, IntPtr hMod, uint dwThreadId);
+        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool UnhookWindowsHookEx(IntPtr hhk);
+        [DllImport("user32.dll")]
+        public static extern IntPtr CallNextHookEx(IntPtr hhk, int nCode, IntPtr wParam, IntPtr lParam);
+        // overload for use with LowLevelKeyboardProc
+        [DllImport("user32.dll")]
+        public static extern IntPtr CallNextHookEx(IntPtr hhk, int nCode, WindowsMessages wParam, [In]KBDLLHOOKSTRUCT lParam);
     }
 
     public static class Gdi
@@ -42,6 +60,56 @@ namespace DotaClosedAi.Win32
         public static extern IntPtr CreateDIBSection(IntPtr hdc, [In] ref BITMAPINFO pbmi, DIBColors pila, out IntPtr ppvBits, IntPtr hSection, uint dwOffset);
         [DllImport("gdi32.dll")]
         public static extern IntPtr SelectObject(IntPtr hdc, IntPtr bmp);
+    }
+
+    public delegate IntPtr LowLevelKeyboardProc(int nCode, WindowsMessages wParam, [In] KBDLLHOOKSTRUCT lParam);
+
+    public delegate IntPtr HookProc(int code, IntPtr wParam, IntPtr lParam);
+
+    public enum WindowsMessages : uint
+    {
+        WM_KEYDOWN = 0x0100,
+        WM_SYSKEYDOWN = 0x0104,
+        WM_KEYUP = 0x101,
+        WM_SYSKEYUP = 0x105
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public class KBDLLHOOKSTRUCT
+    {
+        public uint vkCode;
+        public uint scanCode;
+        public KBDLLHOOKSTRUCTFlags flags;
+        public uint time;
+        public UIntPtr dwExtraInfo;
+    }
+
+    [Flags]
+    public enum KBDLLHOOKSTRUCTFlags : uint
+    {
+        LLKHF_EXTENDED = 0x01,
+        LLKHF_INJECTED = 0x10,
+        LLKHF_ALTDOWN = 0x20,
+        LLKHF_UP = 0x80,
+    }
+
+    public enum HookType : int
+    {
+        WH_JOURNALRECORD = 0,
+        WH_JOURNALPLAYBACK = 1,
+        WH_KEYBOARD = 2,
+        WH_GETMESSAGE = 3,
+        WH_CALLWNDPROC = 4,
+        WH_CBT = 5,
+        WH_SYSMSGFILTER = 6,
+        WH_MOUSE = 7,
+        WH_HARDWARE = 8,
+        WH_DEBUG = 9,
+        WH_SHELL = 10,
+        WH_FOREGROUNDIDLE = 11,
+        WH_CALLWNDPROCRET = 12,
+        WH_KEYBOARD_LL = 13,
+        WH_MOUSE_LL = 14
     }
 
     [StructLayout(LayoutKind.Sequential)]

@@ -7,10 +7,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DotaClosedAi.Tasks
+namespace DotaClosedAi.Overlay
 {
-    public class DotaOverlay
+    public class DotaOverlay : IDisposable
     {
+        private Process _dotaProcess;
+
         private GraphicsWindow _window;
 
         private Font _font;
@@ -21,8 +23,10 @@ namespace DotaClosedAi.Tasks
         private SolidBrush _green;
         private SolidBrush _blue;
 
-        public DotaOverlay()
+        public DotaOverlay(Process dotaProcess)
         {
+            _dotaProcess = dotaProcess;
+
             // initialize a new Graphics object
             // GraphicsWindow will do the remaining initialization
             var graphics = new Graphics
@@ -36,7 +40,7 @@ namespace DotaClosedAi.Tasks
             };
 
             // it is important to set the window to visible (and topmost) if you want to see it!
-            _window = new StickyWindow(Process.GetProcessesByName("dota2").FirstOrDefault().MainWindowHandle, graphics)
+            _window = new StickyWindow(_dotaProcess.MainWindowHandle, graphics)
             {
                 IsTopmost = true,
                 IsVisible = true,
@@ -50,16 +54,17 @@ namespace DotaClosedAi.Tasks
             _window.DrawGraphics += _window_DrawGraphics;
         }
 
-        ~DotaOverlay()
+        public bool Run()
         {
-            // you do not need to dispose the Graphics surface
-            _window.Dispose();
-        }
+            if (_dotaProcess == null || _dotaProcess.HasExited)
+            {
+                return false;
+            }
 
-        public void Run()
-        {
             // creates the window and setups the graphics
             _window.StartThread();
+
+            return true;
         }
 
         private void _window_SetupGraphics(object sender, SetupGraphicsEventArgs e)
@@ -117,6 +122,21 @@ namespace DotaClosedAi.Tasks
             _black.Dispose();
             _red.Dispose();
             _green.Dispose();
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _window.Dispose();
+            }
+            // free native resources if there are any.
         }
     }
 }

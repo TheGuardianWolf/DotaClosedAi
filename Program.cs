@@ -1,5 +1,4 @@
 ﻿using DotaClosedAi.Screen;
-using DotaClosedAi.Tasks;
 using DotaClosedAi.Vision;
 using OpenCvSharp;
 using OpenCvSharp.Extensions;
@@ -17,24 +16,43 @@ namespace DotaClosedAi
 {
     class Program
     {
+        static bool exitToken = false;
+        static DotaWindowCaptureOcv dotaWindowCapture;
+        static Process process;
+
         static void Main(string[] args)
         {
-            var process = Process.GetProcessesByName("dota2").FirstOrDefault();
+            process = Process.GetProcessesByName("dota2").FirstOrDefault();
 
-            var dotaWindowCapture = new DotaOcvWindowCapture();
-            dotaWindowCapture.FrameCaptured += DotaWindowCapture_FrameCaptured;
-            dotaWindowCapture.Run();
-
-            while(true)
+            if (process != null)
             {
-                Thread.Sleep(1000);
-                Console.WriteLine($"{dotaWindowCapture.FramesPerSecond}");
-            }
+                process.Exited += Process_Exited;
+
+                dotaWindowCapture = new DotaWindowCaptureOcv(process.MainWindowHandle);
+                dotaWindowCapture.FrameCaptured += DotaWindowCapture_FrameCaptured;
+                dotaWindowCapture.Run();
+
+                while (!exitToken)
+                {
+                    Thread.Sleep(1000);
+                    Console.WriteLine($"{dotaWindowCapture.FramesPerSecond}");
+                }
+            }            
+        }
+
+        private static void Process_Exited(object sender, EventArgs e)
+        {
+            dotaWindowCapture.Stop();
+            dotaWindowCapture.Dispose();
+
+            process.Exited -= Process_Exited;
+
+            exitToken = true;
         }
 
         private static void DotaWindowCapture_FrameCaptured(object sender, DotaOcvWindowCaptureFrameCapturedEventArgs e)
         {
-            var frame = e.Frame;
+            var frame = e.GetFrame();
             frame.Dispose();
         }
     }

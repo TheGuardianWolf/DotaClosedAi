@@ -7,16 +7,15 @@ using System.Text;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Threading;
-using OpenCvSharp;
+using System.Drawing;
 
 namespace DotaClosedAi.Vision
 {
-    class DotaOcvWindowCapture
+    class DotaWindowCaptureOcv
     {
-        private readonly string DOTA_PROCESS_NAME = "dota2";
         private readonly int SECOND_MS = 1000;
-        private OcvWindowCapture _windowCapture;
-        private Process _dotaProcess;
+        private WindowCaptureOcv _windowCapture;
+        private IntPtr _windowHandle;
         private Task _captureTask;
         private bool _taskStopToken;
         private int _frameCounter;
@@ -26,16 +25,16 @@ namespace DotaClosedAi.Vision
 
         public bool IsRunning { get; private set; }
 
-        public OcvFrame Frame => _windowCapture.GetFrame();
+        public FrameOcv Frame => _windowCapture.GetFrame();
 
         public Size WindowSize => _windowCapture.WindowSize;
 
         public event EventHandler<DotaOcvWindowCaptureFrameCapturedEventArgs> FrameCaptured;
 
-        public DotaOcvWindowCapture()
+        public DotaWindowCaptureOcv(IntPtr windowHandle)
         {
             IsRunning = false;
-            _dotaProcess = null;
+            _windowHandle = windowHandle;
             _windowCapture = null;
             _captureTask = null;
             _taskStopToken = false;
@@ -47,22 +46,15 @@ namespace DotaClosedAi.Vision
         {
             while(!_taskStopToken)
             {
-                if (!_dotaProcess.HasExited)
-                {
-                    _windowCapture.PerformCapture();
-                    Interlocked.Increment(ref _frameCounter);
-                    FrameCaptured?.Invoke(this, new DotaOcvWindowCaptureFrameCapturedEventArgs(_windowCapture));
-                }
-                else
-                {
-                    Stop(false);
-                }
+                _windowCapture.PerformCapture();
+                Interlocked.Increment(ref _frameCounter);
+                FrameCaptured?.Invoke(this, new DotaOcvWindowCaptureFrameCapturedEventArgs(_windowCapture));
             }
         }
 
         private void FrameCountLoop(object state)
         {
-            if (!_taskStopToken && !_dotaProcess.HasExited)
+            if (!_taskStopToken)
             {
                 var fps = Interlocked.Exchange(ref _frameCounter, 0);
                 FramesPerSecond = fps;
@@ -73,15 +65,8 @@ namespace DotaClosedAi.Vision
         {
             if (!IsRunning)
             {
-                _dotaProcess = Process.GetProcessesByName(DOTA_PROCESS_NAME).FirstOrDefault();
-
-                if (_dotaProcess == null)
-                {
-                    return false;
-                }
-
                 _taskStopToken = false;
-                _windowCapture = new OcvWindowCapture(_dotaProcess);
+                _windowCapture = new WindowCaptureOcv(_windowHandle);
                 _captureTask = Task.Factory.StartNew(CaptureLoop, TaskCreationOptions.LongRunning);
                 _frameCounter = 0;
                 _frameCounterTimer.Change(SECOND_MS, SECOND_MS);
@@ -106,7 +91,7 @@ namespace DotaClosedAi.Vision
                     _captureTask = null;
                     _windowCapture.Dispose();
                     _windowCapture = null;
-                    _dotaProcess = null;
+                    _windowHandle = IntPtr.Zero;
                     IsRunning = false;
                 }
                 else
@@ -141,11 +126,11 @@ namespace DotaClosedAi.Vision
 
     class DotaOcvWindowCaptureFrameCapturedEventArgs : EventArgs
     {
-        private OcvWindowCapture _windowCapture;
-        public Point Cursor => _windowCapture.GetCursor();
-        public OcvFrame Frame => _windowCapture.GetFrame();
+        private WindowCaptureOcv _windowCapture;
+        public Point GetCursor() => _windowCapture.GetCursor();
+        public FrameOcv GetFrame() => _windowCapture.GetFrame();
 
-        internal DotaOcvWindowCaptureFrameCapturedEventArgs(OcvWindowCapture windowCapture)
+        internal DotaOcvWindowCaptureFrameCapturedEventArgs(WindowCaptureOcv windowCapture)
         {
             _windowCapture = windowCapture;
         }

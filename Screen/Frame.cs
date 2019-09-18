@@ -5,12 +5,12 @@ namespace DotaClosedAi.Screen
 {
     public class Frame : IDisposable
     {
-        public Bitmap Bitmap { get; private set; }
+        public Bitmap Image { get; private set; }
         public Point Cursor { get; private set; }
 
         public Frame(Bitmap bitmap, Point cursor)
         {
-            Bitmap = bitmap;
+            Image = bitmap;
             Cursor = cursor;
         }
 
@@ -24,7 +24,7 @@ namespace DotaClosedAi.Screen
         {
             if (disposing)
             {
-                Bitmap.Dispose();
+                Image.Dispose();
             }
             // free native resources if there are any.
         }

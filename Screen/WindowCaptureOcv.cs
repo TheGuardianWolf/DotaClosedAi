@@ -1,18 +1,20 @@
 ﻿using DotaClosedAi.Win32;
-using OpenCvSharp;
+using Emgu.CV;
 using System;
+using System.Drawing;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Emgu.CV.CvEnum;
 
 namespace DotaClosedAi.Screen
 {
-    class OcvWindowCapture : IDisposable
+    class WindowCaptureOcv : IDisposable
     {
         private RECT _rc;
-        private Process _process;
+        private IntPtr _windowHandle;
         private IntPtr _windowDC;
         private IntPtr _compatDC;
         private IntPtr _bitmap;
@@ -23,16 +25,16 @@ namespace DotaClosedAi.Screen
 
         public Size WindowSize => new Size(_rc.Width, _rc.Height);
 
-        public OcvWindowCapture(Process process)
+        public WindowCaptureOcv(IntPtr windowHandle)
         {
-            _process = process;
-            User.GetWindowRect(_process.MainWindowHandle, out _rc);
+            _windowHandle = windowHandle;
+            User.GetWindowRect(windowHandle, out _rc);
             Init();
         }
 
         private void Init()
         {
-            _windowDC = User.GetWindowDC(_process.MainWindowHandle); // hdcSys
+            _windowDC = User.GetWindowDC(_windowHandle); // hdcSys
             _compatDC = Gdi.CreateCompatibleDC(_windowDC); // hdcMem
 
             BITMAPINFO bi = new BITMAPINFO();
@@ -46,7 +48,7 @@ namespace DotaClosedAi.Screen
             IntPtr hOldBmp = Gdi.SelectObject(_compatDC, _bitmap);
             Gdi.DeleteObject(hOldBmp);
 
-            _mat = new Mat(_rc.Height, _rc.Width, MatType.CV_8UC4, _bitmapPixels, 0);
+            _mat = new Mat(_rc.Height, _rc.Width, DepthType.Cv8U, 4, _bitmapPixels, 0);
         }
 
         public void PerformCapture()
@@ -55,7 +57,7 @@ namespace DotaClosedAi.Screen
             {
                 _hasFrame = true;
                 RECT rc;
-                User.GetWindowRect(_process.MainWindowHandle, out rc);
+                User.GetWindowRect(_windowHandle, out rc);
 
                 if (rc != _rc)
                 {
@@ -71,15 +73,15 @@ namespace DotaClosedAi.Screen
             }
         }
 
-        public OcvFrame GetFrame()
+        public FrameOcv GetFrame()
         {
-            OcvFrame c = null;
+            FrameOcv c = null;
 
             if (_hasFrame)
             {
                 lock (this)
                 {
-                    c = new OcvFrame(_mat, new Point(_cursor.X, _cursor.Y));
+                    c = new FrameOcv(_mat, _cursor);
                 }
             }
 
@@ -88,17 +90,15 @@ namespace DotaClosedAi.Screen
 
         public Point GetCursor()
         {
-            Point p = new Point();
-
             if (_hasFrame)
             {
                 lock (this)
                 {
-                    p = new Point(_cursor.X, _cursor.Y);
+                    return _cursor;
                 }
             }
 
-            return p;
+            return new Point(-1, -1);            
         }
 
         public void Dispose()
@@ -115,7 +115,7 @@ namespace DotaClosedAi.Screen
                 _mat.Dispose();
             }
             // free native resources if there are any.
-            User.ReleaseDC(_process.MainWindowHandle, _windowDC);
+            User.ReleaseDC(_windowHandle, _windowDC);
             Gdi.DeleteDC(_compatDC);
             Gdi.DeleteObject(_bitmap);
             _hasFrame = false;
