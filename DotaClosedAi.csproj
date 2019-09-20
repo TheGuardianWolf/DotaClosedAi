@@ -107,16 +107,24 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Input\Keyboard.cs" />
-    <Compile Include="Screen\FrameOcv.cs" />
-    <Compile Include="Screen\Frame.cs" />
-    <Compile Include="Screen\WindowCaptureOcv.cs" />
-    <Compile Include="Vision\DotaWindowCaptureOcv.cs" />
+    <Compile Include="Overlay\IDotaOverlay.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Window\Frame.cs" />
+    <Compile Include="Window\IDotaWindowCapture.cs" />
+    <Compile Include="Window\IFrame.cs" />
+    <Compile Include="Window\IWindowCapture.cs" />
+    <Compile Include="Window\WindowCapture.cs" />
+    <Compile Include="AiTask\IAiTask.cs" />
+    <Compile Include="Unit\DotaCreepProps.cs" />
+    <Compile Include="Window\DotaWindowCapture.cs" />
     <Compile Include="Overlay\DotaOverlay.cs" />
     <Compile Include="Win32\Api.cs" />
-    <Compile Include="Screen\WindowCapture.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Vision\DotaWindowCapture.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -125,6 +133,16 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="License-LGPL.txt" />
+    <Content Include="Resources\CreepHpTemplate.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="CvUtil\" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

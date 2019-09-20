@@ -1,5 +1,4 @@
-﻿using DotaClosedAi.Screen;
-using DotaClosedAi.Vision;
+﻿using DotaClosedAi.Window;
 using OpenCvSharp;
 using OpenCvSharp.Extensions;
 using System;
@@ -17,7 +16,7 @@ namespace DotaClosedAi
     class Program
     {
         static bool exitToken = false;
-        static DotaWindowCaptureOcv dotaWindowCapture;
+        static DotaWindowCapture dotaWindowCapture;
         static Process process;
 
         static void Main(string[] args)
@@ -28,7 +27,7 @@ namespace DotaClosedAi
             {
                 process.Exited += Process_Exited;
 
-                dotaWindowCapture = new DotaWindowCaptureOcv(process.MainWindowHandle);
+                dotaWindowCapture = new DotaWindowCapture(process.MainWindowHandle);
                 dotaWindowCapture.FrameCaptured += DotaWindowCapture_FrameCaptured;
                 dotaWindowCapture.Run();
 

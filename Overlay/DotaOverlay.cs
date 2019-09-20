@@ -9,9 +9,9 @@ using System.Threading.Tasks;
 
 namespace DotaClosedAi.Overlay
 {
-    public class DotaOverlay : IDisposable
+    public class DotaOverlay : IDisposable, IDotaOverlay
     {
-        private Process _dotaProcess;
+        private IntPtr _windowHandle;
 
         private GraphicsWindow _window;
 
@@ -23,9 +23,12 @@ namespace DotaClosedAi.Overlay
         private SolidBrush _green;
         private SolidBrush _blue;
 
-        public DotaOverlay(Process dotaProcess)
+        public bool IsRunning { get; private set; }
+
+        public DotaOverlay(IntPtr windowHandle)
         {
-            _dotaProcess = dotaProcess;
+            IsRunning = false;
+            _windowHandle = windowHandle;
 
             // initialize a new Graphics object
             // GraphicsWindow will do the remaining initialization
@@ -40,7 +43,7 @@ namespace DotaClosedAi.Overlay
             };
 
             // it is important to set the window to visible (and topmost) if you want to see it!
-            _window = new StickyWindow(_dotaProcess.MainWindowHandle, graphics)
+            _window = new StickyWindow(_windowHandle, graphics)
             {
                 IsTopmost = true,
                 IsVisible = true,
@@ -56,15 +59,31 @@ namespace DotaClosedAi.Overlay
 
         public bool Run()
         {
-            if (_dotaProcess == null || _dotaProcess.HasExited)
+            if (!IsRunning)
             {
-                return false;
+                IsRunning = true;
+
+                // creates the window and setups the graphics
+                _window.StartThread();
+
+                return true;
             }
 
-            // creates the window and setups the graphics
-            _window.StartThread();
+            return false;
+        }
 
-            return true;
+        public bool Stop()
+        {
+            if (IsRunning)
+            { 
+                IsRunning = false;
+
+                _window.StopThread();
+
+                return true;
+            }
+
+            return false;
         }
 
         private void _window_SetupGraphics(object sender, SetupGraphicsEventArgs e)
@@ -75,7 +94,7 @@ namespace DotaClosedAi.Overlay
             _font = gfx.CreateFont("Arial", 16);
 
             // colors for brushes will be automatically normalized. 0.0f - 1.0f and 0.0f - 255.0f is accepted!
-            
+
             _black = gfx.CreateSolidBrush(0, 0, 0);
             _transparent = gfx.CreateSolidBrush(Color.Transparent);
 

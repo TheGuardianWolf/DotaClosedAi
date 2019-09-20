@@ -9,9 +9,9 @@ using System.Text;
 using System.Threading.Tasks;
 using Emgu.CV.CvEnum;
 
-namespace DotaClosedAi.Screen
+namespace DotaClosedAi.Window
 {
-    class WindowCaptureOcv : IDisposable
+    class WindowCapture : IDisposable, IWindowCapture
     {
         private RECT _rc;
         private IntPtr _windowHandle;
@@ -25,7 +25,7 @@ namespace DotaClosedAi.Screen
 
         public Size WindowSize => new Size(_rc.Width, _rc.Height);
 
-        public WindowCaptureOcv(IntPtr windowHandle)
+        public WindowCapture(IntPtr windowHandle)
         {
             _windowHandle = windowHandle;
             User.GetWindowRect(windowHandle, out _rc);
@@ -73,15 +73,15 @@ namespace DotaClosedAi.Screen
             }
         }
 
-        public FrameOcv GetFrame()
+        public Frame GetFrame()
         {
-            FrameOcv c = null;
+            Frame c = null;
 
             if (_hasFrame)
             {
                 lock (this)
                 {
-                    c = new FrameOcv(_mat, _cursor);
+                    c = new Frame(_mat, _cursor);
                 }
             }
 
@@ -98,7 +98,7 @@ namespace DotaClosedAi.Screen
                 }
             }
 
-            return new Point(-1, -1);            
+            return new Point(-1, -1);
         }
 
         public void Dispose()

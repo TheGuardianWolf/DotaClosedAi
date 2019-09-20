@@ -6,14 +6,14 @@ using System.Threading.Tasks;
 using System.Drawing;
 using Emgu.CV;
 
-namespace DotaClosedAi.Screen
+namespace DotaClosedAi.Window
 {
-    class FrameOcv : IDisposable, IFrame
+    class Frame : IDisposable, IFrame
     {
         public Mat Image { get; private set; }
         public Point Cursor { get; private set; }
 
-        public FrameOcv(Mat mat, Point cursor)
+        public Frame(Mat mat, Point cursor)
         {
             Mat temp = new Mat(mat.Size, mat.Depth, mat.NumberOfChannels);
             mat.CopyTo(temp);

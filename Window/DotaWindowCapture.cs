@@ -1,5 +1,4 @@
-﻿using DotaClosedAi.Screen;
-using DotaClosedAi.Win32;
+﻿using DotaClosedAi.Win32;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -8,13 +7,14 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Drawing;
+using DotaClosedAi.AiTask;
 
-namespace DotaClosedAi.Vision
+namespace DotaClosedAi.Window
 {
-    class DotaWindowCaptureOcv
+    class DotaWindowCapture : IDotaWindowCapture
     {
         private readonly int SECOND_MS = 1000;
-        private WindowCaptureOcv _windowCapture;
+        private WindowCapture _windowCapture;
         private IntPtr _windowHandle;
         private Task _captureTask;
         private bool _taskStopToken;
@@ -25,13 +25,11 @@ namespace DotaClosedAi.Vision
 
         public bool IsRunning { get; private set; }
 
-        public FrameOcv Frame => _windowCapture.GetFrame();
-
         public Size WindowSize => _windowCapture.WindowSize;
 
         public event EventHandler<DotaOcvWindowCaptureFrameCapturedEventArgs> FrameCaptured;
 
-        public DotaWindowCaptureOcv(IntPtr windowHandle)
+        public DotaWindowCapture(IntPtr windowHandle)
         {
             IsRunning = false;
             _windowHandle = windowHandle;
@@ -42,9 +40,11 @@ namespace DotaClosedAi.Vision
             _frameCounterTimer = new Timer(FrameCountLoop, null, Timeout.Infinite, SECOND_MS);
         }
 
+        public Frame GetFrame() => _windowCapture.GetFrame();
+
         private void CaptureLoop()
         {
-            while(!_taskStopToken)
+            while (!_taskStopToken)
             {
                 _windowCapture.PerformCapture();
                 Interlocked.Increment(ref _frameCounter);
@@ -66,7 +66,7 @@ namespace DotaClosedAi.Vision
             if (!IsRunning)
             {
                 _taskStopToken = false;
-                _windowCapture = new WindowCaptureOcv(_windowHandle);
+                _windowCapture = new WindowCapture(_windowHandle);
                 _captureTask = Task.Factory.StartNew(CaptureLoop, TaskCreationOptions.LongRunning);
                 _frameCounter = 0;
                 _frameCounterTimer.Change(SECOND_MS, SECOND_MS);
@@ -79,7 +79,7 @@ namespace DotaClosedAi.Vision
             return false;
         }
 
-        private void Stop(bool wait)
+        private bool Stop(bool wait)
         {
             if (IsRunning && !_taskStopToken)
             {
@@ -101,10 +101,13 @@ namespace DotaClosedAi.Vision
                         Stop(true);
                     });
                 }
+                return true;
             }
+
+            return false;
         }
 
-        public void Stop() => Stop(true);
+        public bool Stop() => Stop(true);
 
         public void Dispose()
         {
@@ -126,11 +129,11 @@ namespace DotaClosedAi.Vision
 
     class DotaOcvWindowCaptureFrameCapturedEventArgs : EventArgs
     {
-        private WindowCaptureOcv _windowCapture;
+        private WindowCapture _windowCapture;
         public Point GetCursor() => _windowCapture.GetCursor();
-        public FrameOcv GetFrame() => _windowCapture.GetFrame();
+        public Frame GetFrame() => _windowCapture.GetFrame();
 
-        internal DotaOcvWindowCaptureFrameCapturedEventArgs(WindowCaptureOcv windowCapture)
+        internal DotaOcvWindowCaptureFrameCapturedEventArgs(WindowCapture windowCapture)
         {
             _windowCapture = windowCapture;
         }

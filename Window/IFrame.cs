@@ -6,9 +6,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DotaClosedAi.Screen
+namespace DotaClosedAi.Window
 {
-    interface IFrame : IDisposable
+    interface IFrame
     {
         Mat Image { get; }
         Point Cursor { get; }
