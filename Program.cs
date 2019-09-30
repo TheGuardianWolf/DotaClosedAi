@@ -49,9 +49,16 @@ namespace DotaClosedAi
             exitToken = true;
         }
 
+        static bool once = false;
+
         private static void DotaWindowCapture_FrameCaptured(object sender, DotaOcvWindowCaptureFrameCapturedEventArgs e)
         {
             var frame = e.GetFrame();
+            if (!once)
+            {
+                once = true;
+                frame.Image.Save("test.png");
+            }
             frame.Dispose();
         }
     }

@@ -5,19 +5,18 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Drawing;
 using Emgu.CV;
+using Emgu.CV.Structure;
 
 namespace DotaClosedAi.Window
 {
     class Frame : IDisposable, IFrame
     {
-        public Mat Image { get; private set; }
+        public Image<Bgra, byte> Image { get; private set; }
         public Point Cursor { get; private set; }
 
-        public Frame(Mat mat, Point cursor)
+        public Frame(Image<Bgra, byte> mat, Point cursor)
         {
-            Mat temp = new Mat(mat.Size, mat.Depth, mat.NumberOfChannels);
-            mat.CopyTo(temp);
-            Image = temp;
+            Image = mat.Clone();
             Cursor = cursor;
         }
 

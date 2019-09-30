@@ -1,4 +1,5 @@
 ﻿using Emgu.CV;
+using Emgu.CV.Structure;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -10,7 +11,7 @@ namespace DotaClosedAi.Window
 {
     interface IFrame
     {
-        Mat Image { get; }
+        Image<Bgra, byte> Image { get; }
         Point Cursor { get; }
     }
 }

@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Emgu.CV.CvEnum;
+using Emgu.CV.Structure;
 
 namespace DotaClosedAi.Window
 {
@@ -20,7 +21,7 @@ namespace DotaClosedAi.Window
         private IntPtr _bitmap;
         private IntPtr _bitmapPixels;
         private POINT _cursor;
-        private Mat _mat;
+        private Image<Bgra, byte> _mat;
         private bool _hasFrame = false;
 
         public Size WindowSize => new Size(_rc.Width, _rc.Height);
@@ -48,7 +49,7 @@ namespace DotaClosedAi.Window
             IntPtr hOldBmp = Gdi.SelectObject(_compatDC, _bitmap);
             Gdi.DeleteObject(hOldBmp);
 
-            _mat = new Mat(_rc.Height, _rc.Width, DepthType.Cv8U, 4, _bitmapPixels, 0);
+            _mat = new Image<Bgra,byte>(_rc.Width, _rc.Height, 0, _bitmapPixels);
         }
 
         public void PerformCapture()
