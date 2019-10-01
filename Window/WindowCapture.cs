@@ -49,7 +49,7 @@ namespace DotaClosedAi.Window
             IntPtr hOldBmp = Gdi.SelectObject(_compatDC, _bitmap);
             Gdi.DeleteObject(hOldBmp);
 
-            _mat = new Image<Bgra,byte>(_rc.Width, _rc.Height, 0, _bitmapPixels);
+            _mat = new Image<Bgra, byte>(_rc.Width, _rc.Height, 0, _bitmapPixels);
         }
 
         public void PerformCapture()

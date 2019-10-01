@@ -14,7 +14,7 @@ namespace DotaClosedAi.Window
         public Image<Bgra, byte> Image { get; private set; }
         public Point Cursor { get; private set; }
 
-        public Frame(Image<Bgra, byte> mat, Point cursor)
+        public Frame(Image<Bgra,byte> mat, Point cursor)
         {
             Image = mat.Clone();
             Cursor = cursor;
