@@ -1,11 +1,13 @@
-﻿using DotaClosedAi.Window;
-using OpenCvSharp;
-using OpenCvSharp.Extensions;
+﻿using DotaClosedAi.Unit;
+using DotaClosedAi.Window;
+using Emgu.CV;
+using Emgu.CV.Structure;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -21,22 +23,27 @@ namespace DotaClosedAi
 
         static void Main(string[] args)
         {
-            process = Process.GetProcessesByName("dota2").FirstOrDefault();
+            var img = new Image<Bgra, byte>(@"C:\Users\lichk\Documents\Git\dota2\2019-09-02.png");
+            var frame = new Frame(img, new Point(0, 0));
+            var props = new DotaCreepProps(0.95f);
+            props.ProcessFrame(frame);
+            while (true) ;
+            //process = Process.GetProcessesByName("dota2").FirstOrDefault();
 
-            if (process != null)
-            {
-                process.Exited += Process_Exited;
+            //if (process != null)
+            //{
+            //    process.Exited += Process_Exited;
 
-                dotaWindowCapture = new DotaWindowCapture(process.MainWindowHandle);
-                dotaWindowCapture.FrameCaptured += DotaWindowCapture_FrameCaptured;
-                dotaWindowCapture.Run();
+            //    dotaWindowCapture = new DotaWindowCapture(process.MainWindowHandle);
+            //    dotaWindowCapture.FrameCaptured += DotaWindowCapture_FrameCaptured;
+            //    dotaWindowCapture.Run();
 
-                while (!exitToken)
-                {
-                    Thread.Sleep(1000);
-                    Console.WriteLine($"{dotaWindowCapture.FramesPerSecond}");
-                }
-            }            
+            //    while (!exitToken)
+            //    {
+            //        Thread.Sleep(1000);
+            //        Console.WriteLine($"{dotaWindowCapture.FramesPerSecond}");
+            //    }
+            //}            
         }
 
         private static void Process_Exited(object sender, EventArgs e)
