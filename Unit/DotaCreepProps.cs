@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace DotaClosedAi.Unit
 {
-    class DotaCreepProps : IDisposable
+    class DotaCreepProps : IDisposable, IFrameProcessor, IOverlayDrawer
     {
         private static readonly ScalarArray[] _yellowEmptyThreshold = new ScalarArray[2]
         {
@@ -49,7 +49,8 @@ namespace DotaClosedAi.Unit
         private Image<Gray, byte> _empty = new Image<Gray, byte>(0, 0);
         private Dictionary<int, (Point, int)> _matchDuplicates = new Dictionary<int, (Point, int)>();
         private List<Point> _matches = new List<Point>();
-        private List<(Rectangle, Creep)> _pvtCreepProps = new List<(Rectangle, Creep)>();
+        private List<(Rectangle, Creep)> _pvtCreepPropsInsert = new List<(Rectangle, Creep)>();
+        private List<(Rectangle, Creep)> _pvtCreepPropsRead = new List<(Rectangle, Creep)>();
         private List<(Rectangle, Creep)> _creepProps = new List<(Rectangle, Creep)>();
         private double _templateMatchingThreshold = 0.95;
 
@@ -84,7 +85,7 @@ namespace DotaClosedAi.Unit
         {
             _matchDuplicates.Clear();
             _matches.Clear();
-            _pvtCreepProps.Clear();
+            _pvtCreepPropsInsert.Clear();
 
             var mat = frame.Image;
             Init(mat.Size);
@@ -153,24 +154,43 @@ namespace DotaClosedAi.Unit
                 _creepProps.Add((bar, new Creep(health)));
             }
 
-            if (_pvtCreepProps.Count > 0)
+            if (_pvtCreepPropsInsert.Count > 0)
             {
                 lock (_creepProps)
                 {
                     _creepProps.Clear();
-                    _creepProps.AddRange(_pvtCreepProps);
+                    _creepProps.AddRange(_pvtCreepPropsInsert);
                 }
             }
 
             return true;
         }
 
-        public bool DrawOverlay(DotaOverlay overlay)
+        _font = gfx.CreateFont("Arial", 16);
+            _green = gfx.CreateSolidBrush(Color.Green);
+
+        public bool DrawOverlay(GameOverlay.Drawing.Graphics gfx)
         {
+            _pvtCreepPropsRead.Clear();
             lock (_creepProps)
             {
-                
+                if (_creepProps.Count > 0)
+                {
+                    _pvtCreepPropsRead.AddRange(_creepProps);
+                }                
             }
+
+            if (_pvtCreepPropsRead.Count > 0)
+            {
+                foreach (var entry in _pvtCreepPropsRead)
+                {
+                    var point = entry.Item1.Location;
+                    var creepHp = entry.Item2.Hp;
+
+                    gfx.DrawText(_font,  ((int)(creepHp * 100)).ToString(), new Point(point.X, point.Y - 10));
+                }
+            }
+            
             return true;
         }
 

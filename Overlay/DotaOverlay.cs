@@ -111,6 +111,8 @@ namespace DotaClosedAi.Overlay
             gfx.ClearScene(_transparent); // set the background of the scene (can be transparent)
 
             gfx.DrawTextWithBackground(_font, _red, _black, 10, 10, "FPS: " + gfx.FPS);
+            
+
 
             gfx.DrawCircle(_red, 100, 100, 50, 2);
             gfx.DashedCircle(_green, 250, 100, 50, 2);

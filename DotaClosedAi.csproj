@@ -94,6 +94,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Input\Keyboard.cs" />
+    <Compile Include="Overlay\DotaOverlayApi.cs" />
     <Compile Include="Overlay\IDotaOverlay.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -101,6 +102,8 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="Unit\Creep.cs" />
+    <Compile Include="Window\IFrameProcessor.cs" />
+    <Compile Include="Overlay\IOverlayDrawer.cs" />
     <Compile Include="Window\Frame.cs" />
     <Compile Include="Window\IDotaWindowCapture.cs" />
     <Compile Include="Window\IFrame.cs" />
